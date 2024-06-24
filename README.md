@@ -85,6 +85,32 @@ In summary, your deliverables are:
 1. Implement the endpoints in [detections.py](./detections/api/routes/detections.py)
 2. Add unit tests
 3. Make any suggestions or improvements to existing code or the development
-environment; this could include identifying any important questions that you
-would ask of the client
+   environment; this could include identifying any important questions that you
+   would ask of the client
 4. Explain how you reconciled the frequency of the different data sources
+
+## Dev notes
+
+1. Seems like there is a 4 hour timezone diff.
+
+2. Motion_data ends at 2024-03-14 09:00:09.999
+   object_detections end at 2024-03-14 09:00:10.031
+   This is why my join has 397 rather than 398.
+
+3. Used `df_object['time'].dt.round('ms')` to reconcile the frequency of the different data sources.
+   I didn't go deep into confirming if everything is correct (capping project at 3 hours... Docker issues).
+   Looks like it's working.
+
+4. Not seen here, but I'm worried about the edge case that
+    * data points with time 1234.999 and 1235.000 will be rounded to the same time
+    * get merged into `df_motion`
+    * Only 1 data point survives get lost.
+
+   To deal with this my first step would be to consider a right join.
+    * a good side effect is it'll prevent the issue is #2 above
+
+5. Import statement in app.py seems to be wrong. I am not sure why it was this way to begin with. need to dive deeper
+6. Given a 2h time constright, not able to firegure out unit testing in Python
+    * i've never done it before, let alone have to deal with a webserver
+    * `GET http://testserver/motion "HTTP/1.1 404 Not Found"` suspect host name is the issue. 
+
